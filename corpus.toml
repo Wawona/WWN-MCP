@@ -947,7 +947,10 @@ ref = "master"
 description = "ios_system: run unix commands in-process on iOS (function table, no fork/exec) — the foundational App Store-compliant shell technique."
 license = "BSD-3-Clause"
 platform = ["ios", "ipados", "tvos"]
-include = ["**/*.md", "**/*.h", "Documentation/**", "*.podspec"]
+# Docs only: the conceptual docs explain the in-process technique; the ~550
+# vendored command headers are noise (a-shell/iSH/curated guide cover the rest).
+include = ["**/*.md", "Documentation/**/*.md", "Documentation/**/*.txt", "*.podspec"]
+exclude = ["**/*.h", "**/*.c", "**/*.m"]
 
 # a-shell: an App Store shell built on ios_system that adds WebAssembly
 # (wasm via wasmer/wasm3) to run extra programs WITHOUT shipping native code —
