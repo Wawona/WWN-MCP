@@ -135,8 +135,9 @@ def test_patch_inventory(project: Path):
     settings.ensure_dirs()
     inv = generate_inventory(settings, load_sources(settings.corpus_manifest))
     assert inv["count"] >= 1
-    foo = inv["entries"].get("libs/foo")
+    foo = inv["entries"].get("wawona/libs/foo")
     assert foo is not None
+    assert foo["repo"] == "wawona"
     assert any("patch-foo-source.sh" in p for p in foo["patch_files"])
     assert any("ios.nix" in p for p in foo["inline_patches"])
     assert "ios" in foo["platforms"]

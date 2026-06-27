@@ -50,6 +50,7 @@ exclude = [
   "**/.git/**",
   "inspirational_projects/**",
 ]
+enabled = false
 
 # Production (deploy) entry for the Wawona repo over git. Kept DISABLED locally
 # on purpose: it is the SAME repo as the `wawona` local source above, so enabling
@@ -65,7 +66,7 @@ description = "Wawona repo (deploy-time git mirror of the local `wawona` source)
 license = "MIT"
 include = ["docs/**", "src/**", "Sources/**", "dependencies/**", "*.md"]
 exclude = ["dependencies/generators/gradlegen/output/**", "**/.git/**", "inspirational_projects/**"]
-enabled = false
+enabled = true
 
 # ---------------------------------------------------------------------------
 # Wawona patched-software repos (Wawona org). The headline patched apps were

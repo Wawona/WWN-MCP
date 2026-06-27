@@ -1,0 +1,27 @@
+{
+  "mcpServers": {
+    "wwn-mcp": {
+      "command": "/nix/var/nix/profiles/default/bin/nix",
+      "args": [
+        "run",
+        "/Users/8amps/Wawona/WWN-MCP#wwn-mcp",
+        "--",
+        "serve",
+        "--transport",
+        "stdio"
+      ],
+      "env": {
+        "WWN_MCP_DATA_DIR": "/Users/8amps/.local/share/wwn-mcp",
+        "WWN_MCP_CORPUS_TOML": "/Users/8amps/Wawona/WWN-MCP/corpus.toml"
+      }
+    },
+    "nixos": {
+      "command": "uvx",
+      "args": ["mcp-nixos"]
+    },
+    "xcodebuild": {
+      "command": "npx",
+      "args": ["-y", "xcodebuildmcp@latest", "mcp"]
+    }
+  }
+}

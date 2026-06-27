@@ -40,8 +40,10 @@ the indexed corpus sources.
 - iOS shell App Store compliance: prior art (ios_system, a-Shell/WebAssembly,
   iSH/ash, Blink) + a curated guide to how Wawona ports zsh in-process (no
   fork/exec), its RootFS, and the sandbox-as-"container" model.
-- Wawona's own `docs/`, `src/`, and the whole patched `dependencies/` tree
-  (with a derived patched-software inventory).
+- Wawona's own `docs/`, `src/`, and remaining `dependencies/` tree, plus the
+  extracted patched-software repos (`wwn-toolchain`, `wwn-zsh`, `wwn-weston`,
+  `wwn-iland`, `wwn-waypipe`, `wwn-coreutils`, `wwn-foot`, `wwn-fastfetch`) — Wawona is now an
+  integration layer consuming them as flake inputs.
 
 ## Architecture
 
@@ -73,7 +75,8 @@ nix.dev, package version history, and binary-cache status. It is a *live* MCP
 (it queries upstream Nix services on demand), so it is **not** part of WWN-MCP's
 indexed RAG corpus — the two are complementary:
 
-- **WWN-MCP** → the Wawona stack + Wawona's *own* Nix recipes/patches (`get_patch`).
+- **WWN-MCP** → the Wawona stack + all `wwn-*` patched-software repos (`get_patch` /
+  `list_patches` scan each repo's `dependencies/` tree).
 - **MCP-NixOS** → authoritative *upstream* nixpkgs/option/version facts.
 
 The NixOS module runs it over HTTP behind the same Caddy/TLS/Bearer proxy

@@ -27,9 +27,36 @@ Each `[[source]]` entry supports:
 ## Catalog (by area)
 
 ### Wawona itself
-- `wawona` (local, dev) — `../Wawona`: docs, src, and the whole patched
-  `dependencies/` tree (excludes generated gradlegen output).
-- `wawona-git` (git, **disabled by default**) — the deploy-time git entry.
+- `wawona` (local, dev) — `../Wawona` → `~/Wawona/Wawona`: integration source,
+  docs, remaining `dependencies/` (app packaging, generators, android). Patched
+  apps live in `wwn-*` repos (below).
+- `wawona-git` (git, **disabled locally**) — deploy-time git mirror of integration.
+- `wwn-knowledge-wawona` (local) — multi-repo dev model, repo catalog, patch-overlay,
+  iland upstream credit (`knowledge/wawona/`).
+
+### Wawona patched-software repos (Wawona org)
+Extracted from the Wawona monorepo into standalone Nix-wrapped flake repos that
+keep the patch-overlay model (Nix recipes + patch scripts + injected sources;
+pristine upstream fetched & patched at build). Wawona consumes them as flake
+inputs and merges each repo's `registryFragment` over `wwn-toolchain`'s
+`baseRegistry`.
+- `wwn-toolchain` (`project=wawona`) — cross-compile framework + common library
+  substrate + `wawona-pty`; exposes `lib.mkToolchains` / `lib.baseRegistry`.
+- `wwn-iland` (`project=iland`) — userland DRM/KMS/EGL/GBM compat layer (vendors
+  iland upstream + shims); depended on by `wwn-weston`. License `UNKNOWN`.
+- `wwn-weston` (`project=weston`) — Weston Apple ports + `weston-simple-shm` +
+  the apple-mobile compositor + `verify-weston-ios-patches.py`.
+- `wwn-zsh` (`project=wawona`) — in-process App-Store-compliant zsh + RootFS +
+  `verify-zsh-ios-patches.py`.
+- `wwn-waypipe` (`project=waypipe`), `wwn-coreutils` (`project=coreutils`),
+  `wwn-foot` (`project=wawona`), `wwn-fastfetch` (`project=wawona`) — the remaining patched apps.
+
+`list_patches` / `get_patch` scan **`dependencies/` in all of the above** (not
+just Wawona integration). Paths are repo-qualified, e.g.
+`wwn-zsh/dependencies/libs/zsh/patches/patch-zsh-exec.py`.
+
+**Deploy manifest:** `corpus.server.toml` disables local `wawona`, enables
+`wawona-git`; use it for NixOS (`services.wwn-mcp.corpusManifest`).
 
 ### Wayland protocols (the whole wayland.app set)
 `wayland-explorer`, `wayland-core`, `wayland-protocols`, `wlr-protocols`,

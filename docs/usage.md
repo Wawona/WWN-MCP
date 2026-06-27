@@ -2,8 +2,10 @@
 
 ## Connect Cursor (any Wawona-org repo)
 
-Add a remote MCP entry to the repo's `.cursor/mcp.json` (this is already done in
-the Wawona repo):
+Wawona development uses **multiple repos** under `~/Wawona/` (one directory per
+`github.com/Wawona/*` repo). Open **`~/Wawona/Wawona`** for compositor work, or
+any sibling `wwn-*` repo for patched-software recipes. Add MCP config to each
+repo's `.cursor/mcp.json` (already done in Wawona and WWN-MCP):
 
 ```json
 {

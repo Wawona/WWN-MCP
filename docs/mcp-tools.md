@@ -30,8 +30,10 @@ Source code only.
 Find a function/type/symbol definition by name across code.
 
 ### `get_architecture(topic, top_k=8)`
-Wawona architecture/ADR docs explaining intent for a topic (`project="wawona"`,
-`kind="docs"`).
+Wawona architecture / multi-repo dev docs (`project` fan-out across `wawona`,
+`ios-shell`, `weston`, `iland`, `waypipe`, `coreutils`). Good topics:
+`multi-repo dev model`, `registryFragment`, `patch-overlay`, `wwn-iland upstream`,
+`where to edit zsh patches`.
 
 ### `list_projects()`
 Indexed projects + chunk counts: `[{ "project": "...", "chunks": N }]`.
@@ -45,18 +47,21 @@ A protocol's interfaces/requests/events/enums by name (returns the protocol
 chunks with citations).
 
 ### `list_patches()`
-Every upstream Wawona patches for Apple/Android, derived from `dependencies/`:
+Every patched upstream across **Wawona + all `wwn-*` repos**, derived from each
+repo's `dependencies/` tree:
 ```jsonc
-[{ "software": "clients/weston", "name": "weston", "category": "clients",
+[{ "repo": "wwn-weston", "key": "wwn-weston/clients/weston", "software": "clients/weston",
+   "name": "weston", "category": "clients",
    "platforms": ["android","ios","macos", ...],
-   "patch_files": ["dependencies/clients/weston/terminal-patches/patch-terminal.py", ...],
-   "inline_patches": ["dependencies/clients/weston/ios.nix", ...] }]
+   "patch_files": ["wwn-weston/dependencies/clients/weston/terminal-patches/patch-terminal.py", ...],
+   "inline_patches": ["wwn-weston/dependencies/clients/weston/ios.nix", ...] }]
 ```
 
 ### `get_patch(software)`
-Patch detail for one upstream by name or `category/name` (e.g. `weston`, `zsh`,
-`waypipe`). Returns `{ software, name, category, platforms, patch_files,
-inline_patches, recipes }`, or `{ error, available }` if unknown.
+Patch detail by short name (`weston`, `zsh`) or repo-qualified (`wwn-zsh/zsh`,
+`wwn-weston/clients/weston`). Returns `{ repo, key, software, name, category,
+platforms, patch_files, inline_patches, recipes }`, or `{ error, available }` if
+unknown (or `{ ambiguous, matches }` if the short name hits multiple repos).
 
 ### `read_document(ref, start?, end?)`
 Read a chunk by `chunk_id`, or a file by `source/relative/path` with an optional

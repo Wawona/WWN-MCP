@@ -4,7 +4,8 @@ A local-embeddings RAG + Model Context Protocol (MCP) server that gives any
 Cursor model retrieval-backed knowledge of the Wawona stack: Wayland/Smithay/
 Weston, the Apple (OS 26 / Liquid Glass) and Android (Material 3 Expressive) UI
 ladders, the Vulkan/OpenGL graphics paths, App Store / Play Store compliance,
-and Wawona's own source, docs, and patched dependencies. "WWN" = Wawona.
+and Wawona's integration source plus the extracted **`wwn-*` patched-software
+repos** (toolchain, zsh, weston, iland, waypipe, coreutils, foot). "WWN" = Wawona.
 
 ## Quick start
 

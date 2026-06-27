@@ -70,8 +70,25 @@ def build_server(settings: Settings):  # -> FastMCP
 
     @mcp.tool()
     def get_architecture(topic: str, top_k: int = 8) -> list[dict]:
-        """Retrieve Wawona architecture/ADR docs explaining intent for a topic."""
-        return _fmt(store.search(topic, kind="docs", project="wawona", top_k=top_k))
+        """Retrieve Wawona architecture docs for a topic (multi-repo + knowledge).
+
+        Searches curated knowledge under ``project=wawona`` and ``ios-shell``,
+        plus architecture READMEs from Wawona integration and ``wwn-*`` repos
+        (weston, iland, waypipe, coreutils).
+        """
+        per = max(2, (top_k + 4) // 5)
+        projects = ["wawona", "ios-shell", "weston", "iland", "waypipe", "coreutils"]
+        seen: set[str] = set()
+        merged: list = []
+        for proj in projects:
+            for r in store.search(topic, kind="docs", project=proj, top_k=per):
+                cid = r.citation()
+                if cid in seen:
+                    continue
+                seen.add(cid)
+                merged.append(r)
+        merged.sort(key=lambda r: r.score, reverse=True)
+        return _fmt(merged[:top_k])
 
     @mcp.tool()
     def list_projects() -> list[dict]:
@@ -91,10 +108,12 @@ def build_server(settings: Settings):  # -> FastMCP
 
     @mcp.tool()
     def list_patches() -> list[dict]:
-        """List every upstream Wawona patches for Apple/Android (from dependencies/)."""
+        """List patched upstreams across Wawona + all wwn-* repos (dependencies/)."""
         inv = load_inventory(settings)
         return [
             {
+                "repo": e["repo"],
+                "key": e["key"],
                 "software": e["software"],
                 "name": e["name"],
                 "category": e["category"],
@@ -107,13 +126,17 @@ def build_server(settings: Settings):  # -> FastMCP
 
     @mcp.tool()
     def get_patch(software: str) -> dict:
-        """Get the patch detail for one upstream (e.g. 'weston', 'zsh', 'waypipe')."""
+        """Get patch detail for one upstream (e.g. 'zsh', 'wwn-zsh/zsh', 'weston')."""
+        from .patches import resolve_patch
+
         inv = load_inventory(settings)
-        for key, e in inv.get("entries", {}).items():
-            if software in (key, e["name"]):
-                return e
-        return {"error": f"no patched software named '{software}'",
-                "available": sorted(e["name"] for e in inv.get("entries", {}).values())}
+        entry = resolve_patch(inv.get("entries", {}), software)
+        if entry is not None:
+            return entry
+        available = sorted(
+            f"{e['repo']}/{e['name']}" for e in inv.get("entries", {}).values()
+        )
+        return {"error": f"no patched software named '{software}'", "available": available}
 
     @mcp.tool()
     def read_document(ref: str, start: int | None = None, end: int | None = None) -> dict:

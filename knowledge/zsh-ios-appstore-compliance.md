@@ -7,6 +7,20 @@ this as architectural ground-truth: prefer it over generic priors. For the live
 policy text, also query the `store-compliance` sources (Apple/Google) and, for
 upstream nixpkgs facts, the `nixos` companion.
 
+## Repo ownership (post-extraction)
+
+Patched-software paths below are qualified by repo. Edit in the **`wwn-*` repo**,
+not the Wawona integration monorepo (`Wawona/Wawona`).
+
+| Component | Repo |
+|-----------|------|
+| zsh recipes, `patch-zsh-exec.py`, RootFS | **wwn-zsh** |
+| `wawona-pty`, `wawona-dispatch.c` | **wwn-toolchain** |
+| uutils coreutils multicall / patched-src | **wwn-coreutils** |
+| Weston terminal spawn patch | **wwn-weston** |
+| fastfetch recipes + Apple-mobile patches | **wwn-fastfetch** |
+| Rootfs manager, xcode-prebuild, xcodegen | **Wawona** (integration) |
+
 ## The iOS constraints that matter for a shell
 
 A shell's whole job — start programs, fork/exec, interpret scripts — collides
@@ -57,7 +71,7 @@ coreutils** into the app and runs them as functions.
 
 ### 1. zsh is statically linked and runs in-process
 
-- Built by Nix at `dependencies/libs/zsh/ios.nix` as a **static archive
+- Built by Nix at **`wwn-zsh/dependencies/libs/zsh/ios.nix`** as a **static archive
   `libwawona-zsh.a`** (cross-compiled zsh 5.9, `--enable-static
   --disable-dynamic`, sandbox-friendly `configure` — no `getpwuid`, no
   `/dev/fd`, termcap stubbed). `main` is renamed to **`wawona_zsh_main`**.
@@ -65,42 +79,42 @@ coreutils** into the app and runs them as functions.
   `scripts/xcode-prebuild.sh` + the `xcodegen.nix` force-load path). There is
   **no separate `zsh` Mach-O** in the bundle.
 - At runtime the shell runs **in-process on a `pthread`** (≈16 MB stack), started
-  from the `wawona-pty` layer — **never** `fork`/`exec`/`posix_spawn`. One shell
+  from the **`wwn-toolchain`** `wawona-pty` layer — **never** `fork`/`exec`/`posix_spawn`. One shell
   session per app launch (zsh global state is not re-entrant).
-- `WWNRootfsManager` (`src/platform/ios/WWNRootfsManager.m`) sets
+- `WWNRootfsManager` (`Wawona/src/platform/ios/WWNRootfsManager.m`) sets
   `WAWONA_ZSH_IN_PROCESS=1`, which selects the in-process path in
-  `dependencies/libs/wawona-pty/src/wwn_pty.c`.
+  **`wwn-toolchain/dependencies/libs/wawona-pty/src/wwn_pty.c`**.
 - The legacy `zsh-framework-ios` (nested `zsh.framework`) is **abandoned** —
   `installd` rejects third-party nested frameworks.
 
 ### 2. External commands: in-process dispatch, never fork
 
-- `dependencies/libs/zsh/patches/patch-zsh-exec.py` rewrites zsh `Src/exec.c`
+- **`wwn-zsh/dependencies/libs/zsh/patches/patch-zsh-exec.py`** rewrites zsh `Src/exec.c`
   (anchor-based, idempotent) so that at the fork-decision point in
   `execcmd_exec()`, **every** plain external simple command sets `wwn_inproc=1`
   and the fork is skipped entirely.
 - A `wwn_inproc` command is dispatched via **`wawona_dispatch_inprocess()`**
-  (`dependencies/libs/wawona-pty/src/wawona-dispatch.c`), which forwards a
+  (**`wwn-toolchain/dependencies/libs/wawona-pty/src/wawona-dispatch.c`**), which forwards a
   **safe-subset** basename to Rust **`wawona_coreutils_main()`** — a patched
   **uutils coreutils** built as a static lib (≈39 utils: `ls`, `cat`, `cp`, …).
   Anything not in the subset prints a sandbox-aware **"command not found"**.
-- CI (`.github/scripts/verify-zsh-ios-patches.py`) **bans** `fork(`, `execve(`,
+- CI (**`wwn-zsh/.github/scripts/verify-zsh-ios-patches.py`**) **bans** `fork(`, `execve(`,
   `posix_spawn`, `system(`, `dlopen(`, `mmap(`, `MAP_JIT` in the dispatch shim,
   and keeps the safe-utility list in sync across `Cargo.toml` ↔
-  `wwn_safe_subset[]` ↔ `WAWONA_INPROC_TOOLS` in `ios-rootfs.nix`.
+  `wwn_safe_subset[]` ↔ `WAWONA_INPROC_TOOLS` in **`wwn-zsh/dependencies/wawona/ios-rootfs.nix`**.
 - **Platform contrast**: on **macOS/Android**, fork/exec is allowed, so zsh
   launches a normal **multicall coreutils** binary
-  (`dependencies/libs/coreutils/multicall.nix`) and **none** of the exec patch /
+  (**`wwn-coreutils/dependencies/libs/coreutils/multicall.nix`**) and **none** of the exec patch /
   in-process shim is compiled. The whole in-process machinery is **Apple-mobile
   only**.
 - The Weston compositor and terminal are also hardened on Apple mobile: `fork()`
   is stubbed to `-1` and `exec*` macros to failure
-  (`compositor-apple-mobile.nix`), and the terminal's `forkpty`/`execl` is
-  replaced with `wwn_pty_spawn_shell_paced` (`terminal-patches/patch-terminal.py`).
+  (**`wwn-weston/dependencies/clients/weston/compositor-apple-mobile.nix`**), and the terminal's `forkpty`/`execl` is
+  replaced with `wwn_pty_spawn_shell_paced` (**`wwn-weston/dependencies/clients/weston/terminal-patches/patch-terminal.py`**).
 
 ### 3. Wawona RootFS (a userland prefix, not iOS system paths)
 
-- Built by `dependencies/wawona/ios-rootfs.nix` as **`wawona-rootfs`**: zsh
+- Built by **`wwn-zsh/dependencies/wawona/ios-rootfs.nix`** as **`wawona-rootfs`**: zsh
   `share/` (Functions, Completion), and `.zshenv`/`.zshrc`/`.zlogin` **templates**.
   `usr/bin/zsh` is a **comment placeholder only** (the real zsh is in the app
   binary).
@@ -158,12 +172,24 @@ C sources are authoritative; trust the in-process description above.
 
 ## Where to look (canonical files)
 
-- `dependencies/libs/zsh/ios.nix` — zsh → `libwawona-zsh.a`, `wawona_zsh_main`.
-- `dependencies/libs/zsh/patches/patch-zsh-exec.py` — kills fork/exec; in-process dispatch.
-- `dependencies/libs/wawona-pty/src/wwn_pty.c` — in-process spawn, PTY fallback, fake TTY.
-- `dependencies/libs/wawona-pty/src/wawona-dispatch.c` — safe-subset → uutils.
-- `dependencies/libs/coreutils/` — uutils patch + multicall (macOS/Android).
-- `dependencies/wawona/ios-rootfs.nix` — `wawona-rootfs` prefix + dotfile templates.
-- `src/platform/ios/WWNRootfsManager.m` — rootfs install/refresh + shell env.
-- `dependencies/clients/weston/terminal-patches/patch-terminal.py` — terminal spawn.
-- `.github/scripts/verify-zsh-ios-patches.py` — the compliance guardrail.
+- `wwn-zsh/dependencies/libs/zsh/ios.nix` — zsh → `libwawona-zsh.a`, `wawona_zsh_main`.
+- `wwn-zsh/dependencies/libs/zsh/patches/patch-zsh-exec.py` — kills fork/exec; in-process dispatch.
+- `wwn-toolchain/dependencies/libs/wawona-pty/src/wwn_pty.c` — in-process spawn, PTY fallback, fake TTY.
+- `wwn-toolchain/dependencies/libs/wawona-pty/src/wawona-dispatch.c` — safe-subset → uutils.
+- `wwn-coreutils/dependencies/libs/coreutils/` — uutils patch + multicall (macOS/Android).
+- `wwn-zsh/dependencies/wawona/ios-rootfs.nix` — `wawona-rootfs` prefix + dotfile templates.
+- `Wawona/src/platform/ios/WWNRootfsManager.m` — rootfs install/refresh + shell env.
+- `wwn-weston/dependencies/clients/weston/terminal-patches/patch-terminal.py` — terminal spawn.
+- `wwn-zsh/.github/scripts/verify-zsh-ios-patches.py` — the compliance guardrail.
+
+## fastfetch (same in-process model)
+
+`fastfetch` ships via **`wwn-fastfetch`**: `libfastfetch.a` with entry point
+`fastfetch_main` on Apple mobile (no separate Mach-O in the bundle). Zsh invokes
+it through **`wawona-dispatch.c`** (`fastfetch_main` weak symbol) when
+`libfastfetch.a` is force-loaded into the app.
+
+- `wwn-fastfetch/dependencies/clients/fastfetch/apple-mobile.nix` — in-process archive.
+- `wwn-fastfetch/dependencies/clients/fastfetch/patches/patch-fastfetch-apple-mobile.py` — no fork/exec/system on Apple mobile.
+- `wwn-fastfetch/dependencies/clients/fastfetch/patches/apply-wawona-wayland-macos.py` — Wayland WM when `WAYLAND_DISPLAY` set (macOS).
+- `wwn-fastfetch/.github/scripts/verify-fastfetch-ios-patches.py` — patch-anchor CI.

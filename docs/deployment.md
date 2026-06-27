@@ -55,11 +55,12 @@ hardened systemd service behind a Caddy reverse proxy terminating TLS at
 
 ## Server-tuned corpus manifest
 
-The bundled `corpus.toml` has a `wawona` **local** source (`../Wawona`) meant for
-developer checkouts. On the server there is no such checkout, so provide a
-manifest where the Wawona source is a **git** entry (enable `wawona-git`, disable
-the local `wawona`), and pin `nixpkgs` `ref` to Wawona's `flake.lock` rev. Point
-`corpusManifest` at that file.
+The bundled `corpus.toml` has a `wawona` **local** source (`../Wawona`, i.e.
+`~/Wawona/Wawona` when WWN-MCP lives at `~/Wawona/WWN-MCP`) for developer
+checkouts. On the server there is no such checkout — use the shipped
+**`corpus.server.toml`** (local `wawona` disabled, `wawona-git` enabled). All
+`wwn-*` sources are git-backed on both manifests. Point `corpusManifest` at
+`corpus.server.toml` on NixOS deploy.
 
 ## What the service does
 
