@@ -26,10 +26,22 @@ All org repos live as siblings under one directory:
 ├── wwn-waypipe/
 ├── wwn-coreutils/
 ├── wwn-foot/
-└── wwn-fastfetch/
+├── wwn-fastfetch/
+└── wwn-apt/
 ```
 
 One directory per GitHub repo — a 1:1 mirror of `github.com/Wawona/*`.
+
+## Documentation firewall (App Store vs jailbreak)
+
+| Surface | Rule |
+|---------|------|
+| **`wwn-apt`** | App Store module catalog + `apt` CLI. **Zero mentions** of jailbreak or `repo.wawona.io`. |
+| **`repo.wawona.io`** | Jailbreak `.deb` repo only. Must state App Store modules use **`wwn-apt` only**; this repo is **prohibited** on App Store builds. |
+| **Wawona App Store docs** | Same as `wwn-apt` — no `repo.wawona.io`. |
+
+Cross-reference between channels is allowed **only** on the jailbreak repo README
+(pointing engineers to `wwn-apt`), never the reverse.
 
 ## Where to edit what
 
@@ -42,6 +54,7 @@ One directory per GitHub repo — a 1:1 mirror of `github.com/Wawona/*`.
 | uutils coreutils in-process dispatch | `wwn-coreutils` | |
 | foot terminal port | `wwn-foot` | |
 | fastfetch port | `wwn-fastfetch` | |
+| App Store module catalog, `apt` CLI stub | `wwn-apt` | |
 | cairo/xkbcommon/libwayland/angle/… | `wwn-toolchain` | |
 | wawona-pty, apple-mobile-platform.nix | `wwn-toolchain` | |
 | XcodeGen spec, Android APK, Rust backend | `Wawona` | stays here |
@@ -65,7 +78,8 @@ mergedRegistry = wwn-toolchain.lib.baseRegistry
   // wwn-zsh.registryFragment
   // wwn-waypipe.registryFragment
   // wwn-foot.registryFragment
-  // wwn-fastfetch.registryFragment;
+  // wwn-fastfetch.registryFragment
+  // wwn-apt.registryFragment;  # follow-up PR
 
 toolchains = wwn-toolchain.lib.mkToolchains {
   inherit pkgs pkgsAndroid pkgsIos androidSDK wawonaSrc;
@@ -84,6 +98,7 @@ Each `wwn-*` repo also builds **standalone** via the same `mkToolchains` +
 | `verify-zsh-ios-patches.py` | `wwn-zsh` |
 | `verify-weston-ios-patches.py` | `wwn-weston` |
 | `verify-fastfetch-ios-patches.py` | `wwn-fastfetch` |
+| Catalog validate + doc firewall | `wwn-apt` |
 | Wayland/Android maintainability, integration builds | `Wawona` |
 | Per-repo `nix build .#<sample-output>` | each `wwn-*` |
 

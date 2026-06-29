@@ -16,6 +16,22 @@ compositor/shell/toolchain development.
 | **wwn-fastfetch** | fastfetch port (in-process on Apple mobile, binary on macOS/Android) + Wayland WM on macOS | `fastfetch` | `verify-fastfetch-ios-patches.py` |
 | **WWN-MCP** | RAG + MCP retrieval for agents | — | — |
 
+## App Store module catalog
+
+| Repo | Role | `registryFragment` keys | CI |
+|------|------|-------------------------|-----|
+| **wwn-apt** | App Store `apt` compatibility layer: module catalog (YAML), shell CLI stub, StoreKit + ODR spec | `apt-rootfs` | catalog validate + doc firewall + `apt-rootfs-ios` build |
+
+**Documentation firewall:** the `wwn-apt` repo must **not** mention jailbreak
+distribution or `repo.wawona.io`. App Store Review Notes come from
+`wwn-apt/docs/APP-STORE-MODULES.md` only.
+
+## Jailbreak distribution
+
+| Repo | Role | Notes |
+|------|------|-------|
+| **repo.wawona.io** | Real Debian `.deb` flat repo (Procursus / Termux) | **Jailbreak only.** App Store–approved modules use **`wwn-apt` only**; **`repo.wawona.io` is prohibited** on App Store builds. |
+
 ## Dependency graph (flakes)
 
 ```
@@ -26,8 +42,9 @@ wwn-toolchain
   ├── wwn-coreutils
   ├── wwn-foot
   ├── wwn-fastfetch
+  ├── wwn-apt
   └── wwn-weston ──► wwn-iland (shim sources via ilandSrc)
-Wawona ──► all of the above as flake inputs
+Wawona ──► all of the above as flake inputs (wwn-apt merge — follow-up PR)
 ```
 
 App repos do **not** depend on `wwn-zsh` at flake level (the `wawona_zsh_main`
@@ -47,5 +64,6 @@ cd ~/Wawona/wwn-zsh    && nix build .#zsh-ios
 cd ~/Wawona/wwn-fastfetch && nix build .#fastfetch-ios
 cd ~/Wawona/wwn-weston && nix build .#weston-compositor-ios
 cd ~/Wawona/wwn-iland  && nix build .#iland-ios
+cd ~/Wawona/wwn-apt   && nix build .#apt-rootfs-ios
 cd ~/Wawona/Wawona     && nix build .#wawona-macos   # full integration
 ```
