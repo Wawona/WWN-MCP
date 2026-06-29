@@ -1,5 +1,7 @@
 # WWN-MCP
 
+[![CI](https://github.com/Wawona/wwn-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/Wawona/wwn-mcp/actions/workflows/ci.yml)
+
 A local-embeddings RAG + Model Context Protocol (MCP) server that gives any
 Cursor model retrieval-backed knowledge of the Wawona stack: Wayland/Smithay/
 Weston, the Apple (OS 26 / Liquid Glass) and Android (Material 3 Expressive) UI
