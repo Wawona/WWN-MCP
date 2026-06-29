@@ -7,7 +7,8 @@ Cursor model retrieval-backed knowledge of the Wawona stack: Wayland/Smithay/
 Weston, the Apple (OS 26 / Liquid Glass) and Android (Material 3 Expressive) UI
 ladders, the Vulkan/OpenGL graphics paths, App Store / Play Store compliance,
 and Wawona's integration source plus the extracted **`wwn-*` patched-software
-repos** (toolchain, zsh, weston, iland, waypipe, coreutils, foot). "WWN" = Wawona.
+repos** (toolchain, zsh, weston, iland, waypipe, coreutils, foot, fastfetch,
+apt). "WWN" = Wawona.
 
 ## Quick start
 

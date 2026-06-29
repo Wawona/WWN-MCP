@@ -37,12 +37,16 @@ the indexed corpus sources.
   developer environments (`nix.dev`, `devenv`, `nix-direnv`).
 - Android Jetpack Compose + Material 3 Expressive (Android 16+), NDK graphics.
 - App Store Review Guidelines + Google Play policies (the strictness asymmetry).
+- App Store optional module delivery: **`wwn-apt`** — `apt` CLI compatibility layer
+  over an embedded catalog; StoreKit 2 + On-Demand Resources for foot, neovim,
+  and fastfetch (bundled zsh/coreutils/waypipe/apt are non-removable).
 - iOS shell App Store compliance: prior art (ios_system, a-Shell/WebAssembly,
   iSH/ash, Blink) + a curated guide to how Wawona ports zsh in-process (no
   fork/exec), its RootFS, and the sandbox-as-"container" model.
 - Wawona's own `docs/`, `src/`, and remaining `dependencies/` tree, plus the
   extracted patched-software repos (`wwn-toolchain`, `wwn-zsh`, `wwn-weston`,
-  `wwn-iland`, `wwn-waypipe`, `wwn-coreutils`, `wwn-foot`, `wwn-fastfetch`) — Wawona is now an
+  `wwn-iland`, `wwn-waypipe`, `wwn-coreutils`, `wwn-foot`, `wwn-fastfetch`,
+  `wwn-apt`) — Wawona is now an
   integration layer consuming them as flake inputs.
 
 ## Architecture

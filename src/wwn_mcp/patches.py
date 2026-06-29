@@ -41,6 +41,7 @@ _PATCH_SOURCE_NAMES = frozenset({
     "wwn-coreutils",
     "wwn-foot",
     "wwn-fastfetch",
+    "wwn-apt",
 })
 
 

@@ -49,7 +49,9 @@ inputs and merges each repo's `registryFragment` over `wwn-toolchain`'s
 - `wwn-zsh` (`project=wawona`) — in-process App-Store-compliant zsh + RootFS +
   `verify-zsh-ios-patches.py`.
 - `wwn-waypipe` (`project=waypipe`), `wwn-coreutils` (`project=coreutils`),
-  `wwn-foot` (`project=wawona`), `wwn-fastfetch` (`project=wawona`) — the remaining patched apps.
+  `wwn-foot` (`project=wawona`), `wwn-fastfetch` (`project=wawona`),
+  `wwn-apt` (`project=wawona`) — App Store module catalog + `apt` CLI (StoreKit +
+  ODR; optional modules foot/neovim/fastfetch) — the remaining patched apps.
 
 `list_patches` / `get_patch` scan **`dependencies/` in all of the above** (not
 just Wawona integration). Paths are repo-qualified, e.g.

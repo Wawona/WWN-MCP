@@ -173,6 +173,18 @@ platform = ["ios", "ipados", "tvos", "watchos", "visionos", "android", "macos"]
 include = ["dependencies/**/*.{nix,sh,py,c,h,m}", "dependencies/**/*.patch", "dependencies/**/*.snippet", "flake.nix", ".github/scripts/*.py", "**/*.md"]
 exclude = ["**/.git/**", "**/__pycache__/**", "**/target/**", "**/result/**"]
 
+[[source]]
+name = "wwn-apt"
+project = "wawona"
+kind = "git"
+url = "https://github.com/Wawona/wwn-apt"
+ref = "main"
+description = "App Store module delivery: apt CLI compatibility layer over embedded catalog, StoreKit 2 + On-Demand Resources (ODR). Optional modules: foot, neovim, fastfetch. Bundled (non-removable): zsh, coreutils, waypipe, apt. registryFragment: apt-rootfs. CI: validate-catalog + check-app-store-firewall. Knowledge: knowledge/wawona/wwn-apt-appstore-modules.md."
+license = "MIT"
+platform = ["ios", "ipados", "tvos", "watchos", "visionos"]
+include = ["catalog/**/*.{yaml,yml,json}", "apt/**/*.{sh,8}", "docs/**/*.md", "scripts/**/*.py", "dependencies/**/*.nix", "flake.nix", ".github/scripts/*.py", "**/*.md"]
+exclude = ["**/.git/**", "**/__pycache__/**", "**/.venv/**", "**/result/**"]
+
 # ---------------------------------------------------------------------------
 # Wayland protocol corpus (the entire wayland.app / Wayland Explorer set).
 # ---------------------------------------------------------------------------
@@ -1124,7 +1136,7 @@ name = "wwn-knowledge-wawona"
 project = "wawona"
 kind = "local"
 path = "knowledge/wawona"
-description = "Curated WWN-MCP knowledge: multi-repo dev model, wwn-* catalog, patch-overlay model, iland upstream credit."
+description = "Curated WWN-MCP knowledge: multi-repo dev model, wwn-* catalog, patch-overlay model, wwn-apt App Store modules, iland upstream credit."
 license = "MIT"
 platform = ["all"]
 include = ["**/*.md"]

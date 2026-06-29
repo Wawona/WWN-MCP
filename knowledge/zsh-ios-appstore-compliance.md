@@ -19,6 +19,7 @@ not the Wawona integration monorepo (`Wawona/Wawona`).
 | uutils coreutils multicall / patched-src | **wwn-coreutils** |
 | Weston terminal spawn patch | **wwn-weston** |
 | fastfetch recipes + Apple-mobile patches | **wwn-fastfetch** |
+| App Store module catalog, `apt` CLI (StoreKit + ODR) | **wwn-apt** |
 | Rootfs manager, xcode-prebuild, xcodegen | **Wawona** (integration) |
 
 ## The iOS constraints that matter for a shell
