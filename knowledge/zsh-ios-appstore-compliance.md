@@ -194,3 +194,48 @@ it through **`wawona-dispatch.c`** (`fastfetch_main` weak symbol) when
 - `wwn-fastfetch/dependencies/clients/fastfetch/patches/patch-fastfetch-apple-mobile.py` — no fork/exec/system on Apple mobile.
 - `wwn-fastfetch/dependencies/clients/fastfetch/patches/apply-wawona-wayland-macos.py` — Wayland WM when `WAYLAND_DISPLAY` set (macOS).
 - `wwn-fastfetch/.github/scripts/verify-fastfetch-ios-patches.py` — patch-anchor CI.
+
+### fastfetch: crash root cause + in-process lifecycle hardening
+
+The reported `EXC_BAD_ACCESS` in `fastfetch_main` was **macOS IORegistry/SMC detection
+paths executing in the iOS sandbox** (CPU pmgr, host serial/UUID, SMC temps). Fixed by
+sysctl-only stubs for `cpu_apple.c`, `host_apple.c`, `smc_temps.c`, `os_apple.m`.
+
+Beyond the crash, running a CLI **in-process and repeatedly** exposes process-global
+hazards that a normal `fork`/`exec` binary never hits. On Apple mobile (`WAWONA_APPLE_MOBILE`):
+
+1. **Signals** — `ffStart()` installs `sigaction(SIGINT/SIGTERM/SIGQUIT, exitSignalHandler)`
+   (handler calls `exit(0)`) and `sigprocmask(SIG_BLOCK, SIGCHLD)`. In-process this hijacks
+   the host app's signal handling and turns a Ctrl-C into a whole-app exit. → guarded off.
+2. **`atexit`** — `atexit(ffDestroyInstance)` (main) and `atexit(restoreTerm)` (io_unix)
+   accumulate one registration per run and only fire at real app exit, against a global
+   `FFinstance` that was re-inited each run (leak / use-after-free). → guarded off; cleanup
+   runs deterministically per invocation via the wrapper.
+3. **`exit()`** — called on `--help`/`--version`/bad flags/parse errors from `fastfetch.c`,
+   `option.c`, `commandoption.c`, `temps.c`, `percent.c`. In-process any of these terminates
+   the app. → a `setjmp`/`longjmp` shim (`wawona_ff_inprocess.{h,c}`) redirects `exit()` back
+   to the dispatcher. Delivered as a **forced include** (`-include wawona_ff_inprocess.h`),
+   required because some `exit()` sites (e.g. `commandoption.c`) do not include `fastfetch.h`,
+   so an umbrella-header edit would miss them. `fastfetch.c` is compiled as
+   `fastfetch_main_impl`; `fastfetch_main` is the wrapping barrier.
+
+pthreads are approved, so multithreaded detection stays on (no `pthread_kill(SIGTERM)` on
+Apple: `HAVE_TIMEDJOIN_NP` is glibc-only).
+
+### fastfetch: per-platform framework tiering (watchOS is the trap)
+
+watchOS has **no Metal, no VideoToolbox, and no IOKit headers at all** (iOS/iPadOS/tvOS/visionOS
+ship IOKit headers; they are simply not linked/used). `apple-mobile.nix` keys off
+`mobile.isWatchOS` and emits the exact framework set to `$out/nix-support/fastfetch-frameworks`
+(base `CoreFoundation`+`Foundation`, plus `VideoToolbox`+`Metal` only off watchOS; `IOKit`
+dropped everywhere). Consumers (`fastfetch-ldflags.nix`, Wawona `xcodegen fastfetchLdflags`)
+read the manifest — no per-platform framework knowledge is hardcoded. On watchOS the GPU
+module self-stubs, the VideoToolbox codec detector is swapped for a no-op, and the shared
+`cf_helpers.h` / `smbios.c` gate IOKit behind `__has_include`.
+
+Android is a real NDK binary (Play policy allows fork/exec/dynamic loading); it uses its own
+`patch-fastfetch-android-glob.py` + stub set and never defines `WAWONA_APPLE_MOBILE`.
+
+Build/verify: `verify-fastfetch-ios-patches.py` asserts the guards, exit-shim wiring, banned
+syscalls, framework tiering, and Android decoupling. CI evals all Apple variants and builds
+iOS + watchOS (the framework-tiering canary) + Android.
